@@ -13,23 +13,26 @@ dates=seq(as.Date("1895-01-01"), as.Date("2020-12-31"), by="month")
 
 # precip
 options(prism.path = "/scratch/crimmins/PRISM/monthly/precip") 
-prec <- prism_stack(ls_prism_data())
+prec <- pd_stack(prism_archive_ls())
 #writeRaster(prec,filename="/scratch/crimmins/PRISM/monthly/processed/monthlyPRISM_prec_1895_2017.grd", overwrite=TRUE )
 
 # tmean
 options(prism.path = "/scratch/crimmins/PRISM/monthly/tmean") 
-tmean <- prism_stack(ls_prism_data())
+tmean <- pd_stack(prism_archive_ls())
 #writeRaster(tmean,filename="/scratch/crimmins/PRISM/monthly/processed/monthlyPRISM_tmean_1895_2017.grd", overwrite=TRUE )
 
 # SW domain
 # -115.576172,30.543339,-101.997070,38.582526
 
 # western US only
-e <- extent(-115.5, -102, 25, 30.5)
+e <- extent(-115.5, -102, 30.5, 39)
 prec <- crop(prec, e)	
 tmean <- crop(tmean, e)	
 #tmax <- crop(tmax, e)	
 #tmin <- crop(tmin, e)	
+
+names(prec)<-dates
+names(tmean)<-dates
 
 writeRaster(prec,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_prec_1895_2020.grd", overwrite=TRUE )
 writeRaster(tmean,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_tmean_1895_2020.grd", overwrite=TRUE )

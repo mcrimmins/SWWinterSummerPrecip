@@ -1,0 +1,43 @@
+---
+title: "SW US Winter-Summer Precipitation Study"
+author: "M. Crimmins"
+date: "08/30/21"
+output: html_document # or pdf_document
+---
+
+Some initial, exploratory plots of PRISM precipitation relationships between winter and summer seasons across 4 watersheds in the SW US. 
+
+For context, annual average precipitation and watershed boundaries using PRISM data (1895-2020)
+
+```{r, echo=FALSE}
+avgMap
+```
+
+This map shows the grid-based Pearson r correlation between winter (JFM) and subsequent summer (JAS). These would be the local correlations and don't account for remote influences. Correlations are negative across much of our study watershed (and significant) and max out close to -0.3.
+```{r, echo=FALSE}
+corrMap
+```
+
+These interactive scatterplot plots depict winter (JFM) vs summer (JAS) precipitation relationships (areal watershed averages for each season). The red line is the linear regression fit line and the blue lines are the quantile regression fit lines for the 10th, 50th and 90th percentiles. Overall, that weak negative relationship is present across all the watersheds and across the different quantiles. There is a bit of difference with the 10th and 90th quantile relationships...like in the Gila, there is much less of a relationship with dry monsoon seasons and preceding winter precipitation. A bit stronger on the wet monsoon side, with more very wet monsoon seasons associated with dry winters.  
+
+```{r, echo=FALSE}
+p
+```
+
+This table shows counts of JAS precipitation categories (in terciles of dry/normal/wet) in relation to preceding winter precipitation rankings (terciles as well). Shows slight shifts in counts associated with weak inverse relationship.
+
+```{r, echo=FALSE}
+countsTable
+```
+
+Interactive time series of seasonal precip by watershed.
+
+```{r, echo=FALSE}
+p2
+```
+
+Things to try...
+
+  * Extend to longer season Oct-Mar and compare to shorter monsoon season (J, JA,...)
+  * Bring in teleconnection indices like AO, ENSO, PNA, MJO...does this help describe certain years in extreme differences between dry winters and wet summers?
+  * Is watershed the right spatial unit? The correlations seem to be strongest with highest elevations...why is that? Use ecoregions associated with elevation gradients?
