@@ -11,6 +11,13 @@ library(viridis)
 # set rasteroptions
 rasterOptions(progress = 'text')
 
+# load and summarize climate indices
+load("~/RProjects/WinterSummerPrecip/climInd.RData")
+climIndAnn<-climInd %>% group_by(year) %>%
+                        summarize(annONI = mean(ONI))
+climIndAnn$annONIroll<-(zoo::rollapply(climIndAnn$annONI, 30, mean, na.rm = TRUE, align="right", fill=NA))
+
+
 # update scratch dir with PRISM data 1895-2020 monthly precip/mean temp
 # use ~/RProjects/PRISMDownload/monthyDownloadPRISM.R
 # process to subset using ~/RProjects/WinterSummerPrecip/processPRISM.R
@@ -146,6 +153,13 @@ countsTable<-temp%>%
 # 6-month ONDJFM winter
 # 1-month July/summer
 
+# extract zonal time series
+# precTS<-as.data.frame(t(zonal(prec, SWhucs, 'mean'))) # rasterized polygons
+precTS<-as.data.frame(t(raster::extract(prec, SWhucs, 'mean'))) # polygons
+colnames(precTS)<-unique(SWhucs$NAME)
+  #precTS$date<-seq(as.Date("1895-01-01"), as.Date("2020-12-31"), by="month")
+
+
 # winter seas
 precTSwinter<-as.data.frame(zoo::rollapply(precTS[,1:4], 6, sum, na.rm = TRUE, align="right", fill=NA))
 # add in date fields
@@ -166,13 +180,14 @@ precTSwinterLong$winter_percrank<-ifelse(is.na(precTSwinterLong$sum)==TRUE, NA, 
 
 # summer seas
 # dates 1895-2017 PRISM data
-precTSsummer<-precTS
+#precTSsummer<-precTS
+precTSsummer<-as.data.frame(zoo::rollapply(precTS[,1:4], 1, sum, na.rm = TRUE, align="right", fill=NA))
 precTSsummer$date<-seq(as.Date("1895-01-01"), as.Date("2020-12-31"), by="month")
 precTSsummer$month<-as.integer(format(precTSsummer$date, "%m"))
 precTSsummer$year <- as.integer(format(precTSsummer$date, "%Y"))
   # subset to summer season
-  precTSsummer<-subset(precTSsummer, month==7)
-  precTSsummer$seas<-"July"
+  precTSsummer<-subset(precTSsummer, month==9)
+  precTSsummer$seas<-"JAS"
 
 # gather into long format
 precTSsummerLong <- gather(precTSsummer, HUC, sum, 1:4, factor_key=TRUE)
@@ -182,23 +197,86 @@ precTSsummerLong <- precTSsummerLong %>%
 precTSsummerLong$summer_percrank<-ifelse(is.na(precTSsummerLong$sum)==TRUE, NA, precTSsummerLong$summer_percrank)
 
 # correlations between watersheds
-library("PerformanceAnalytics")
-my_data <- precTSsummer[, c(1:4)]
-chart.Correlation(my_data, histogram=TRUE, pch=19)
+# library("PerformanceAnalytics")
+# my_data <- precTSsummer[, c(1:4)]
+# chart.Correlation(my_data, histogram=TRUE, pch=19)
 
 
 # combine into common dataframe
 precComb<-merge(precTSsummerLong, precTSwinterLong, by=c("year","HUC"))
 
 # scatterplot of winter/summer relationships 3-month windows
-p<-ggplot(precComb, aes(x=winter_percrank, y=summer_percrank, name=year)) +
+p3<-ggplot(precComb, aes(x=winter_percrank, y=summer_percrank, name=year)) +
   geom_point()+
   #geom_smooth(method=lm)+
   facet_wrap(.~HUC)+
   geom_quantile(quantiles = c(0.1,0.5,0.9))+
-  theme_bw()
+  theme_bw()+
+  ggtitle("ONDJFM vs JAS precipitation")
 
-plotly::ggplotly(p)
+p3<-plotly::ggplotly(p3)
+
+## rolling correlations
+runCorr<- precComb %>%
+        group_by(HUC) %>%
+          mutate(cor = zoo::rollapplyr(
+          data = cbind(sum.x, sum.y),
+          width = 15,
+          FUN = function(w) cor(w[, 1], w[, 2]),
+          by.column = FALSE,
+          fill = NA, align="center"))
+temp<-merge(runCorr,climIndAnn,by="year")
+
+# plot corrs
+p4<-ggplot(runCorr,aes(date.x,cor))+
+      geom_line()+
+      facet_wrap(.~HUC)+
+      geom_hline(yintercept = 0)+
+      ylim(-0.8,0.8)+
+      ggtitle("15 yr running centered correlation - ONDJFM vs Sept")
+  #geom_line(data=temp, aes(date.x,annONIroll), color="red")
+p4<-plotly::ggplotly(p4)
+
+## Trying different period sums within group_by
+  leng1<-6; endMo1<-3 # seas 1
+  leng2<-3; endMo2<-9 # seas 2
+  precTSfull<-precTS
+  precTSfull$date<-seq(as.Date("1895-01-01"), as.Date("2020-12-31"), by="month")
+  precTSfull$month<-as.integer(format(precTSfull$date, "%m"))
+  precTSfull$year <- as.integer(format(precTSfull$date, "%Y"))
+  # diff time periods?
+  #precTSfull<-subset(precTSfull, year>1950)
+  
+  precTSfullLong <- gather(precTSfull, HUC, sum, 1:4, factor_key=TRUE)
+  precTSfullLong <- precTSfullLong %>% group_by(HUC) %>%
+                    mutate(period1=zoo::rollapply(sum, leng1, sum, na.rm = TRUE, align="right", fill=NA),
+                           period2=zoo::rollapply(sum, leng2, sum, na.rm = TRUE, align="right", fill=NA))
+  precTSfullLong <- precTSfullLong %>% group_by(HUC, year) %>%
+                    filter(month %in% c(endMo1,endMo2))
+  precTSfullLong<-precTSfullLong[,c(-5)]
+    temp1<-spread(precTSfullLong, month, period1)
+      temp1<-na.omit(temp1[,c(1,2,3,5)])   
+    temp2<-spread(precTSfullLong, month, period2)
+      temp2<-na.omit(temp2[,c(1,2,3,6)])  
+    temp1<-merge(temp1,temp2[,c(2,3,4)], by=c("year","HUC"))
+    colnames(temp1)[c(4,5)]<-c("per1","per2")
+  # get correlation by HUC
+    corHUC<-temp1 %>% group_by(HUC) %>%
+                    summarize(HUCcor=cor(per1,per2))
+
+# correlations between months
+    
+    precTSmo <- gather(precTSfull, HUC, sum, 1:4, factor_key=TRUE)
+    precTSmo <- precTSmo[,-1]
+    precTSmo <- spread(precTSmo, month, sum)
+    
+    moCorr <- precTSmo  %>% 
+              group_by(HUC) %>%
+              summarize(corr = cor(`7`, `9`, method = "sp"))
+    
+    
 #####
 
+    write.csv(precTS, file = "HUC_precipitation.csv")    
+    
 rmarkdown::render("notebook.Rmd", output_file="SWUSprecip_notebook.html")
