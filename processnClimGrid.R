@@ -21,6 +21,7 @@ dates<-seq(as.Date(strsplit(names(prec[[1]]), "X")[[1]][2],"%Y.%m.%d"),
            as.Date(strsplit(names(prec[[nlayers(prec)]]), "X")[[1]][2],"%Y.%m.%d"), by="month")
 
 # subset to complete years
-prec<-subset(prec, which(dates<="2020-12-01"))
+prec<-subset(prec, which(dates<="2022-12-01"))
 
-writeRaster(prec,filename="/scratch/crimmins/climgrid/processed/sw/SWmonthly_nClimGrid_prec_1895_2020.grd", overwrite=TRUE )
+writeRaster(prec,filename="/scratch/crimmins/climgrid/processed/sw/SWmonthly_nClimGrid_prec_1895_2022.grd", overwrite=TRUE )
+
