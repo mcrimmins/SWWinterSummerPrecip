@@ -5,7 +5,7 @@ library(raster)
 library(ggplot2)
 
 # load cluster map
-classMap<-raster("./data/classMap6.grd")
+classMap<-raster("./data/classMap5.grd")
 
 #####
 # load cropped FOD 
@@ -55,4 +55,51 @@ ggplot(fc, aes(fireCluster,CONT_DOY, group=fireCluster))+
   geom_hline(yintercept = 182)+
   geom_hline(yintercept = 91)
 
+#####
+# plot large fires on classMap
+# code from /SWWildfires/AZNM_wildfires_geospatial.R
 
+library(rasterVis)
+library(RColorBrewer)
+
+load("~/RProjects/SWWildfires/data/AZNM_largeWildfires.RData")
+
+firePerims<-list()
+for(i in 1:length(fireProgList)){
+  firePerims[[i]]<-fireProgList[[i]][[3]]
+}
+
+# bind Hermit's peak perims
+firePerims[[20]]<-bind(firePerims[[20]],firePerims[[21]])
+firePerims<-firePerims[-21]
+
+firePerims<-do.call(bind,firePerims)
+firePerims_sp<-firePerims
+firePerims_df<-firePerims@data
+firePerims_df$id<-seq(1,nrow(firePerims_df),1)
+
+firePerims = broom::tidy(firePerims)
+firePerims$id<-as.numeric(firePerims$id)
+# join dfs
+firePerims = dplyr::left_join(firePerims,firePerims_df,by='id')
+
+# get fire map labels
+firePerims_df$BurnBndLat<-as.numeric(as.character(firePerims_df$BurnBndLat))
+  firePerims_df$BurnBndLat<-firePerims_df$BurnBndLat+(1e-1 * runif(nrow(firePerims_df)))
+firePerims_df$BurnBndLon<-as.numeric(as.character(firePerims_df$BurnBndLon))
+fireLabCoord = firePerims_df[c("BurnBndLon", "BurnBndLat")]
+coordinates(fireLabCoord) <- ~BurnBndLon+BurnBndLat
+firePerims_df$label<-paste0(firePerims_df$Incid_Name,"(",firePerims_df$Ig_Date,")")
+
+# try other polygons...MLRAs, ecoregions?
+states <- getData('GADM', country='United States', level=1)
+
+# plot classified map
+rasterVis::levelplot(classMap, col.regions=colorRampPalette(brewer.pal(5, "Set3")),
+                     par.settings=list(panel.background=list(col="white")),
+                     margin=FALSE, main="Precip Season Clusters")+
+  latticeExtra::layer(sp.polygons(states, fill=NA, col = "grey40"))+
+  latticeExtra::layer(sp.polygons(firePerims_sp, fill=NA, col = "red"))+
+  # layer(sp.polygons(huc4, fill=NA, col = "black"))
+  #latticeExtra::layer(sp.polygons(SWhucs, fill=NA, col = "black",lwd=0.5))
+  latticeExtra::layer(sp.text(coordinates(fireLabCoord), txt = firePerims_df$label, cex=0.7))

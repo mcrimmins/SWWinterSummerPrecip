@@ -38,14 +38,14 @@ tempPerc<-cbind.data.frame(temp[,c(1:3)],zoo::rollapply(temp[,4:8], FUN = mean, 
                                                         fill=NA,align="right", by.column = TRUE))
 
 # write out seas means
-write.csv(tempPerc,file='./data/csv_5cluster/Cluster5_12mo_mean_temp_PRISM_1895-2022.csv', row.names=FALSE)
+#write.csv(tempPerc,file='./data/csv_5cluster/Cluster5_3mo_mean_temp_PRISM_1895-2022.csv', row.names=FALSE)
 #####
 
 # wide to long
 tempPerc <- gather(tempPerc, cluster, temp, cluster1:cluster5, factor_key=TRUE)
 tempPerc<-subset(tempPerc, !is.na(temp))
 # calc percent rank to seas and cluster
-tempPerc<-tempPerc%>%group_by(month,cluster)%>%mutate(tempRank=rank(temp)/length(temp))
+tempPerc<-tempPerc%>%group_by(month,cluster)%>%mutate(tempRank=rank(temp)/(length(temp)+1))
 tempPerc<-tempPerc[,-5]
 # long back to wide
 tempPerc <- spread(tempPerc, cluster, tempRank, drop=TRUE)

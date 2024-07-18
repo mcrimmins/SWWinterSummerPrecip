@@ -64,6 +64,10 @@ moScalePET<-calc(moAvgPET, fun=function(x){(x/sum(x))*100})
   names(moScalePET)<-paste0(month.abb,"PET")  
 plot(moScalePrec, colNA="red")
 
+cols <- colorRampPalette(RColorBrewer::brewer.pal(9,"YlGn"))
+rasterVis::levelplot(moScalePrec, col.regions=cols,  main="Monthly % of Annual Total Precip")+
+  latticeExtra::layer(sp.polygons(states, fill=NA, col = "grey40"))
+
 clusterGrid<-moScalePrec
 
 # crop to smaller area? AZ/NM 
@@ -156,8 +160,10 @@ ggplot(moCluster, aes(month,precip))+
 
 ggplot(moCluster, aes(month,precip, color=as.factor(cluster)))+
   geom_line()+
-  geom_point()+
-  ggtitle("K-mean cluster centers - Percent of annual total by month")+
+  geom_point(size=2)+
+  scale_color_manual(values=c("grey","#7570B3","#B2DF8A","#8DD3C7","#80B1D3"), name="region")+
+  scale_x_continuous(breaks=seq(1,12,1))+
+  #ggtitle("K-mean cluster centers - Percent of annual total by month")+
   ylab("% of annual total precip")+
   theme_bw()
 
