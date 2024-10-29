@@ -198,12 +198,12 @@ seasPrecLong<- seasPrecLong %>% mutate(seas = case_match(month,
 seasPrecLong$seas<-factor(seasPrecLong$seas, levels=rev(c("OND","JFM","AMJ","JAS")))
 
 
-p1<-ggplot(seasPrecLong, aes(x = year, y = seas, fill = prec)) + # witch seas/cluster
+p1<-ggplot(seasPrecLong, aes(x = year, y = cluster, fill = prec)) + # witch seas/cluster
   geom_tile(color = "black") +
   scale_fill_gradient2(low = "brown", mid="white",high = "green", midpoint = 0.5)+
   #geom_text(aes(label = prec), color = "black", size = 4) +
   #facet_wrap(cluster~., nrow=5)+
-  facet_grid(cluster~.)+ # switch seas/cluster
+  facet_grid(seas~.)+ # switch seas/cluster
   #coord_fixed()+
   scale_x_continuous(breaks=seq(1900,2020,10))+
   #theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
@@ -223,12 +223,12 @@ seasTempLong<- seasTempLong %>% mutate(seas = case_match(month,
 seasTempLong$seas<-factor(seasTempLong$seas, levels=rev(c("OND","JFM","AMJ","JAS")))
 
 
-p2<-ggplot(seasTempLong, aes(x = year, y = seas, fill = temp)) +
+p2<-ggplot(seasTempLong, aes(x = year, y = cluster, fill = temp)) +
   geom_tile(color = "black") +
   scale_fill_gradient2(low = "blue", mid="white",high = "red", midpoint = 0.5)+
   #geom_text(aes(label = prec), color = "black", size = 4) +
   #facet_wrap(.~cluster, nrow=5)+
-  facet_grid(cluster~.)+
+  facet_grid(seas~.)+
   #coord_fixed()+
   scale_x_continuous(breaks=seq(1900,2020,10))+
   #theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
@@ -236,7 +236,7 @@ p2<-ggplot(seasTempLong, aes(x = year, y = seas, fill = temp)) +
 
 cowplot::plot_grid(p1, p2, labels = "AUTO", align = "v",ncol = 1)
 
-## categories
+## CATEGORIES
 ## seasons categorical counts - prec 
 percThresh<-0.33
 catVal<-percThresh 
@@ -257,16 +257,16 @@ seasPrecCatsLong<- seasPrecCatsLong %>% mutate(seas = case_match(month,
                                                          "9" ~ "JAS",
                                                          .default = seas))
 #seasPrecCatsLong$seas<-factor(seasPrecCatsLong$seas, levels=c("OND","JFM","AMJ","JAS"))
-seasPrecCatsLong$seas<-factor(seasPrecCatsLong$seas, levels=rev(c("OND","JFM","AMJ","JAS")))
+seasPrecCatsLong$seas<-factor(seasPrecCatsLong$seas, levels=(c("OND","JFM","AMJ","JAS")))
 
 
-p1<-ggplot(seasPrecCatsLong, aes(x = year, y = as.factor(seas), fill = cat)) + # change y to cluster/month
+p1<-ggplot(seasPrecCatsLong, aes(x = year, y = as.factor(cluster), fill = cat)) + # change y to cluster/month
   geom_tile(color = "black") +
   scale_fill_manual(values = c("brown", "white", "green"), name = "Precip Cat", 
                     guide = guide_legend(reverse = TRUE))+
   #geom_text(aes(label = prec), color = "black", size = 4) +
   #facet_wrap(cluster~., nrow=5)+
-  facet_grid((cluster~.))+ # change to cluster/month
+  facet_grid((seas~.))+ # change to cluster/month
   #coord_fixed()+
   scale_x_continuous(breaks=seq(1900,2020,10))+
   #theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
@@ -292,15 +292,15 @@ seasTempCatsLong<- seasTempCatsLong %>% mutate(seas = case_match(month,
                                                                  "9" ~ "JAS",
                                                                  .default = seas))
 #seasTempCatsLong$seas<-factor(seasTempCatsLong$seas, levels=c("OND","JFM","AMJ","JAS"))
-seasTempCatsLong$seas<-factor(seasTempCatsLong$seas, levels=rev(c("OND","JFM","AMJ","JAS")))
+seasTempCatsLong$seas<-factor(seasTempCatsLong$seas, levels=(c("OND","JFM","AMJ","JAS")))
 
-p2<-ggplot(seasTempCatsLong, aes(x = year, y = as.factor(seas), fill = cat)) +
+p2<-ggplot(seasTempCatsLong, aes(x = year, y = as.factor(cluster), fill = cat)) +
   geom_tile(color = "black") +
   scale_fill_manual(values = c("blue", "white", "red"), name = "Temp Cat", 
                     guide = guide_legend(reverse = TRUE))+
   #geom_text(aes(label = prec), color = "black", size = 4) +
   #facet_wrap(cluster~., nrow=5)+
-  facet_grid(cluster~.)+
+  facet_grid(seas~.)+
   #coord_fixed()+
   scale_x_continuous(breaks=seq(1900,2020,10))+
   #theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
@@ -317,23 +317,63 @@ seasCatsLong$month.x<-factor(seasCatsLong$month.x, levels=c(12,3,6,9))
 load("~/RProjects/WinterSummerPrecip/data/colorPal.RData")
 seasCatsLong<-merge(seasCatsLong,colorsTP,by="code")
 
-p3<-ggplot(subset(seasCatsLong, cat.y=="dry"), aes(x = year.x, y = as.factor(seas.x), fill = code)) + # change y to month.x vs cluster
+p3<-ggplot(seasCatsLong, aes(x = year.x, y = as.factor(cluster), fill = code)) + # change y to month.x vs cluster
   geom_tile(color = "black") +
-  #scale_fill_manual(values = colorsTP[order(colorsTP$code),"rgbComb"], name = "Climate Cat", 
-  #                  guide = guide_legend(reverse = TRUE))+
-  scale_fill_manual(values = c("darkgoldenrod1","lightgoldenrod1","brown"), name="Drought Cat")+
+  scale_fill_manual(values = colorsTP[order(colorsTP$code),"rgbComb"], name = "Climate Cat", 
+                    guide = guide_legend(reverse = TRUE))+
+  #scale_fill_manual(values = c("darkgoldenrod1","lightgoldenrod1","brown"), name="Drought Cat")+
   #geom_text(aes(label = prec), color = "black", size = 4) +
   #facet_wrap(.~cluster, nrow=5)+
   #coord_fixed()+
   scale_x_continuous(breaks=seq(1900,2020,10))+
-  facet_grid(cluster~.)+
+  facet_grid(seas.x~.)+
   #theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   ggtitle("Seasonal Climate Percentile Categories")
 
 cowplot::plot_grid(p1, p2,p3, labels = "AUTO", align = "v",ncol = 1)
 
-# drought time series
 
+##### counts of climate percentile cats by period
+# seasonal count tables
+
+catCounts<- seasCatsLong %>% group_by(code, year.x) %>%
+  summarize(count=n(),
+            rgbcode=first(rgbComb))
+ggplot(catCounts, aes(year.x,count,fill=code))+
+  geom_bar(stat="identity")+
+  scale_fill_manual(values = colorsTP[order(colorsTP$code),"rgbComb"], name = "Climate Cat", 
+                    guide = guide_legend(reverse = TRUE))+
+  scale_x_continuous(breaks=seq(1900,2020,10))
+
+length(unique(seasCatsLong$year.x))/8
+seq(1896+16,2022,by=16)
+seasCatsLong$period<-cut(seasCatsLong$year.x, breaks = c(seq(1895,2022,by=16),2022), dig.lab=4)
+  seasCatsLong$period<-gsub(']', '', seasCatsLong$period)
+  seasCatsLong$period<-gsub('\\(', '', seasCatsLong$period)
+  seasCatsLong$period<-gsub(',', '-', seasCatsLong$period)
+seasCatsLong$period<-as.factor(seasCatsLong$period)
+levels(seasCatsLong$period)
+
+catCounts<- seasCatsLong %>% group_by(code, period) %>%
+  summarize(count=n(),
+            rgbcode=first(rgbComb))
+ggplot(catCounts, aes(x=period,y=count,fill=code))+
+  geom_bar(stat="identity")+
+  #geom_bar(position="fill")+
+  scale_fill_manual(values = colorsTP[order(colorsTP$code),"rgbComb"], name = "Climate Cat", 
+                    guide = guide_legend(reverse = TRUE))
+# only warm 
+ggplot(subset(catCounts, code %in% c("warm-wet","warm-dry","warm-avg")), aes(x=period,y=(count/(16*4*5)*100),fill=code))+
+  geom_bar(stat="identity")+
+  #geom_bar(position="fill")+
+  scale_fill_manual(values = colorsTP[order(colorsTP$code),"rgbComb"][7:9], name = "Climate Cat", 
+                    guide = guide_legend(reverse = TRUE))+
+  ylab("% occurrence")
+
+
+#####
+
+# drought time series
 ggplot(subset(seasCatsLong,cat.y=="dry"), aes(dates,cluster, fill=as.factor(code)))+
   #geom_point(shape=21, alpha=0.75)+
   geom_tile()+
