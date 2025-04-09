@@ -9,7 +9,7 @@ library(prism)
 rasterOptions(progress = 'text')
 
 # dates 1895-2017 PRISM data
-dates=seq(as.Date("1895-01-01"), as.Date("2022-12-31"), by="month")
+dates=seq(as.Date("1895-01-01"), as.Date("2023-12-31"), by="month")
 
 #####
 # precip
@@ -30,7 +30,7 @@ e <- extent(-115.5, -102, 30.5, 39)
 prec <- crop(prec, e)	
 #names(prec)<-dates
 
-writeRaster(prec,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_prec_1895_2022.grd", overwrite=TRUE )
+writeRaster(prec,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_prec_1895_2023.grd", overwrite=TRUE )
 #writeRaster(prec,filename="/scratch/crimmins/PRISM/monthly/processed/monthlyPRISM_prec_1895_2017.grd", overwrite=TRUE )
 #####
 
@@ -52,7 +52,7 @@ options(prism.path = "/scratch/crimmins/PRISM/monthly/tmean")
   tmean <- crop(tmean, e)	
   #names(tmean)<-dates
   
-  writeRaster(tmean,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_tmean_1895_2022.grd", overwrite=TRUE )
+  writeRaster(tmean,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_tmean_1895_2023.grd", overwrite=TRUE )
 #writeRaster(tmean,filename="/scratch/crimmins/PRISM/monthly/processed/monthlyPRISM_tmean_1895_2017.grd", overwrite=TRUE )
 
 #####
@@ -73,7 +73,7 @@ options(prism.path = "/scratch/crimmins/PRISM/monthly/tmin")
   tmin <- crop(tmin, e)	
   #names(tmin)<-dates
   
-  writeRaster(tmin,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_tmin_1895_2022.grd", overwrite=TRUE )
+  writeRaster(tmin,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_tmin_1895_2023.grd", overwrite=TRUE )
 #####
 
 #####  
@@ -94,7 +94,7 @@ options(prism.path = "/scratch/crimmins/PRISM/monthly/tmax")
   tmax <- crop(tmax, e)	
   #names(tmax)<-dates
   
-  writeRaster(tmax,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_tmax_1895_2022.grd", overwrite=TRUE )
+  writeRaster(tmax,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_tmax_1895_2023.grd", overwrite=TRUE )
 #####
 
 #####  
@@ -122,7 +122,7 @@ e <- extent(-115.5, -102, 30.5, 39)
 vpdmax <- crop(vpdmax, e)	
 #names(tmax)<-dates
 
-writeRaster(vpdmax,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_vpdmax_1895_2022.grd", overwrite=TRUE )
+writeRaster(vpdmax,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_vpdmax_1895_2023.grd", overwrite=TRUE )
 #####  
   
 #####  
@@ -150,7 +150,7 @@ e <- extent(-115.5, -102, 30.5, 39)
 tdmean <- crop(tdmean, e)	
 #names(tmax)<-dates
 
-writeRaster(tdmean,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_tdmean_1895_2022.grd", overwrite=TRUE )
+writeRaster(tdmean,filename="/scratch/crimmins/PRISM/monthly/processed/SW/SWmonthlyPRISM_tdmean_1895_2023.grd", overwrite=TRUE )
 #####    
 
 
